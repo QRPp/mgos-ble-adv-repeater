@@ -1,0 +1,14 @@
+author: QRPp <awesome.walrus+github@gmail.com>
+description: Mongoose OS module to retransmit BLE advertisements
+name: ble-adv-repeater
+type: lib
+version: 1.0
+manifest_version: 2020-08-02
+
+sources: [src]
+
+config_schema:
+  - ["bt.adv_repeat", "s", "", {"title": "[{mac:\"aabbccddeeff\"},...]"}]
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/rpc-common
