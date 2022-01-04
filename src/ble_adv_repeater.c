@@ -2,6 +2,7 @@
 #include <mgos_bt_gap.h>
 #include <mgos_config.h>
 
+#include <mgos-helpers/bt.h>
 #include <mgos-helpers/json.h>
 #include <mgos-helpers/log.h>
 #include <mgos-helpers/mem.h>
@@ -31,7 +32,7 @@ static bool src_parse_one(struct mg_str json) {
   int macL;
   char *name = NULL;
   TRY_JSON_SCANF_OR(goto err, json.p, json.len, "{mac:%H,name:%Q}", &macL, &mac,
-      &name);
+                    &name);
   if (!mac)
     FNERR_GT("no mac: %.*s", json.len, json.p);
   else if (macL != sizeof(as->mac))
@@ -89,7 +90,7 @@ static void adv_repeat(struct mgos_bt_gap_scan_result *r) {
   mgos_bt_gap_set_adv_data(r->adv_data);
   mgos_bt_gap_set_scan_rsp_data(r->scan_rsp);
   mgos_bt_gap_set_adv_enable(true);
-  mgos_usleep(100*1000);
+  mgos_usleep(100 * 1000);
   mgos_bt_gap_set_adv_enable(false);
 }
 
@@ -100,10 +101,8 @@ static void adv_handle(int ev, void *ev_data, void *userdata) {
   if (!as) return;
 
   FNLOG(LL_INFO, "%s (%s) recognised (rssi %d)",
-	mgos_bt_addr_to_str(&r->addr, MGOS_BT_ADDR_STRINGIFY_TYPE,
-			    alloca(MGOS_BT_ADDR_STR_LEN)),
-	as->name ?: "(null)",
-	r->rssi);
+        BT_ADDR_STRA(&r->addr, MGOS_BT_ADDR_STRINGIFY_TYPE),
+        as->name ?: "(null)", r->rssi);
   adv_repeat(r);
 }
 
@@ -114,8 +113,7 @@ bool mgos_ble_adv_repeater_init() {
   unsigned num = src_parse_many(mg_mk_str(mgos_sys_config_get_bt_adv_repeat()));
   FNLOG(LL_INFO, "loaded %u MAC%s", num, MUL(num));
   if (SLIST_EMPTY(&srcs)) goto err;
-  mgos_event_add_group_handler(MGOS_BT_GAP_EVENT_SCAN_RESULT, adv_handle,
-			       NULL);
+  mgos_event_add_group_handler(MGOS_BT_GAP_EVENT_SCAN_RESULT, adv_handle, NULL);
 err:
   return true;
 }
